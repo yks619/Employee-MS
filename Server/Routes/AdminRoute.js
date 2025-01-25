@@ -1,42 +1,27 @@
 import express from "express";
 import con from "../utils/db.js";
 import jwt from "jsonwebtoken";
-import bcrypt from "bcryptjs";
 
 const router = express.Router();
 
-router.post("/adminlogin ", async (req, res) => {
-    const { email, password } = req.body;
+router.post("/adminlogin", (req, res) => {
+  const sql = "SELECT * from admin where email = ? and password = ? ";
+  con.query(sql, [req.body.email, req.body.password], (err, result) => {
+    if (err) return res.json({ loginStatus: false, Error: "Query error" });
+    if (result.length > 0) {
+      const email = result[0].email;
 
-    try {
-        const sql = "SELECT * FROM admin WHERE email = ?";
-        const [results] = await con.promise().query(sql, [email]);
-
-        if (results.length > 0) {
-            const isMatch = await bcrypt.compare(password, results[0].password);
-
-            if (isMatch) {
-                const token = jwt.sign(
-                    { role: "admin", email: results[0].email }, 
-                    process.env.JWT_SECRET, 
-                    { expiresIn: "1d" }
-                );
-
-                res.cookie("token", token, {
-                    httpOnly: true,
-                    secure: process.env.NODE_ENV === 'production',
-                    sameSite: 'strict'
-                });
-
-                return res.json({ loginStatus: true });
-            }
-        }
-
-        return res.json({ loginStatus: false, Error: "Invalid email or password" });
-    } catch (err) {
-        console.error(err);
-        return res.status(500).json({ loginStatus: false, Error: "Server error" });
+      const token = jwt.sign(
+        { role: "admin", email: email },
+        "jwt_secret_key",
+        { expiresIn: "1d" }
+      );
+      res.cookie("token", token)
+      return res.json({ loginStatus: true})
+    }else{
+        return res.json({ loginStatus: false, Error: "wrong email or password" });
     }
+  });
 });
 
 export { router as adminRouter };

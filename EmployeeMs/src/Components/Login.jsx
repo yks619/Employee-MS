@@ -1,45 +1,26 @@
 import React, { useState } from "react";
+import "./style.css"
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import "./style.css"
 
 const Login = () => {
+
     const [values, setValues] = useState({
-        email: "",
-        password: ""
-    });
-    const navigate = useNavigate();
+        email:"",
+        password:""
+    })
 
-    const handleSubmit = (event) => {
-        event.preventDefault();
-        
-        // Basic form validation
-        if (!values.email || !values.password) {
-            alert("Please enter both email and password");
-            return;
-        }
+    const navigate = useNavigate()
 
-        axios.post("http://localhost:3001/auth/adminlogin", values)
-            .then(result => {
-                if (result.data.success) {
-                    navigate("/dashboard");
-                } else {
-                    alert("Login failed: Invalid credentials");
-                }
-            })
-            .catch(err => {
-                console.error(err);
-                alert("An error occurred during login");
-            });
-    };
+    const handleSubmit = (event)=>{
+        event.preventDefault()
+        axios.post("http://localhost:3000/auth/adminlogin", values)
+        .then(result => {
+            navigate("/dashboard")
+        })
+        .catch(err => console.log(err))
+    }
 
-    const handleInputChange = (e) => {
-        const { name, value } = e.target;
-        setValues(prevState => ({
-            ...prevState,
-            [name]: value
-        }));
-    };
 
     return (
         <div className="h-screen w-full flex justify-center items-center loginPage">
@@ -47,12 +28,9 @@ const Login = () => {
                 <h2 className="text-4xl text-center font-bold">Login</h2>
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
-                        <label className="text-xl" htmlFor="email">
-                            <strong>Email</strong>
-                        </label>
+                        <label className="text-xl" htmlFor="email"><strong>Email</strong></label>
                         <input
-                            id="email"
-                            onChange={handleInputChange}
+                        onChange={(e)=> setValues({...values, email: e.target.value})}
                             type="email"
                             name="email"
                             autoComplete="off"
@@ -67,8 +45,9 @@ const Login = () => {
                             <strong>Password</strong>
                         </label>
                         <input
+                        onChange={(e)=> setValues({...values, password: e.target.value})}
+
                             id="password"
-                            onChange={handleInputChange}
                             type="password"
                             name="password"
                             placeholder="Enter Password"
